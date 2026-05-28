@@ -6,7 +6,9 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import SecretStr, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+
+from config.keyring_source import KeyringSettingsSource
 
 DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset(
     {
@@ -64,3 +66,21 @@ class Settings(BaseSettings):
                 "Segredos obrigatórios ausentes em profile=prod: " + ", ".join(missing)
             )
         return self
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Precedência: init > keyring > env > .env > file secrets."""
+        return (
+            init_settings,
+            KeyringSettingsSource(settings_cls),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )

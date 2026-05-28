@@ -121,3 +121,92 @@ def test_validador_nao_vaza_valor_do_segredo() -> None:
 
     message = str(excinfo.value)
     assert "sk-super-secret-value-123" not in message
+
+
+# --- Precedência de sources (keyring > env > .env) — T7 ---
+
+
+def _fake_keyring(values: dict[str, str | None]) -> object:
+    """Cria substituto de `keyring.get_password` para os testes."""
+
+    def fake(service: str, key: str) -> str | None:
+        assert service == "consigaz-robo"
+        return values.get(key)
+
+    return fake
+
+
+def test_keyring_vence_dotenv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Se um segredo está no keyring E no .env, o valor do keyring deve prevalecer."""
+    env_path = tmp_path / ".env"
+    env_path.write_text("OPENAI_API_KEY=sk-from-env\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "keyring.get_password",
+        _fake_keyring({"openai_api_key": "sk-from-keyring"}),
+    )
+
+    settings = Settings()
+    assert settings.openai_api_key is not None
+    assert settings.openai_api_key.get_secret_value() == "sk-from-keyring"
+
+
+def test_dotenv_vence_quando_keyring_vazio(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Sem entrada no keyring, o .env deve assumir."""
+    env_path = tmp_path / ".env"
+    env_path.write_text("OPENAI_API_KEY=sk-from-env\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("keyring.get_password", _fake_keyring({}))
+
+    settings = Settings()
+    assert settings.openai_api_key is not None
+    assert settings.openai_api_key.get_secret_value() == "sk-from-env"
+
+
+def test_keyring_unica_fonte_quando_dotenv_ausente(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Sem .env e sem env var, valor do keyring é o usado."""
+    monkeypatch.setattr(
+        "keyring.get_password",
+        _fake_keyring({"openai_api_key": "sk-only-keyring"}),
+    )
+
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert settings.openai_api_key is not None
+    assert settings.openai_api_key.get_secret_value() == "sk-only-keyring"
+
+
+def test_prod_falha_quando_nem_keyring_nem_dotenv_tem_segredos(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """profile=prod sem segredos em lugar nenhum continua falhando."""
+    monkeypatch.setattr("keyring.get_password", _fake_keyring({}))
+
+    with pytest.raises(ValidationError) as excinfo:
+        Settings(profile="prod", _env_file=None)  # type: ignore[call-arg]
+
+    message = str(excinfo.value)
+    assert "openai_api_key" in message
+
+
+def test_keyring_indisponivel_cai_para_dotenv(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Se keyring.get_password lançar KeyringError, .env deve assumir sem propagar erro."""
+    from keyring.errors import KeyringError
+
+    env_path = tmp_path / ".env"
+    env_path.write_text("OPENAI_API_KEY=sk-fallback\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    def fake_raises(service: str, key: str) -> str | None:
+        raise KeyringError("backend indisponível")
+
+    monkeypatch.setattr("keyring.get_password", fake_raises)
+
+    settings = Settings()
+    assert settings.openai_api_key is not None
+    assert settings.openai_api_key.get_secret_value() == "sk-fallback"
