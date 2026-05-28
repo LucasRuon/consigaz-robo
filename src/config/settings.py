@@ -44,6 +44,19 @@ class Settings(BaseSettings):
     desktop_app_password: SecretStr | None = None
     web_platform_password: SecretStr | None = None
 
+    web_headless: bool = False
+    web_login_url_patterns: list[str] = ["/login", "/auth", "/signin", "/entrar"]
+    web_default_timeout: float = 15.0
+    web_navigate_timeout: float = 30.0
+    web_user_agent: str = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+    web_viewport_width: int = 1280
+    web_viewport_height: int = 800
+    web_locale: str = "pt-BR"
+
     sensitive_keys: frozenset[str] = DEFAULT_SENSITIVE_KEYS
 
     model_config = SettingsConfigDict(

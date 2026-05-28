@@ -1,7 +1,7 @@
 # Roadmap
 
-**Current Milestone:** M0 — Fundação Cross-Platform
-**Status:** Planning
+**Current Milestone:** M2 — Camada Web (Playwright)
+**Status:** M1 concluído ✅ — pronto para M2
 
 ---
 
@@ -13,20 +13,20 @@
 
 ### Features
 
-**Setup do projeto** — PLANNED
+**Setup do projeto** — DONE ✅
 
 - Estrutura de diretórios conforme PRD (`orchestrator/`, `desktop/`, `web/`, `intelligence/`, `config/`, `assets/templates/`, `logs/errors/`, `tests/`)
 - `pyproject.toml` + `uv.lock` com pinning estrito; smoke test que importa `cv2`, `playwright`, `pyautogui` em ambos SOs
 - `Makefile` ou `tasks.py` com comandos cross-platform (setup, run, test, lint)
 - README de instalação documentando passos por SO (incluindo permissões de Acessibilidade no macOS e UAC no Windows)
 
-**Camada de configuração e segredos** — PLANNED
+**Camada de configuração e segredos** — DONE ✅
 
 - `config.py` baseado em `pydantic-settings` carregando `.env`
 - Wrapper `secrets.py` usando `keyring` (Keychain no mac, Credential Manager no Windows) com fallback `.env`
 - Validação: nenhum segredo aparece em log nem em screenshot
 
-**Logging estruturado** — PLANNED
+**Logging estruturado** — DONE ✅
 
 - Logger com saída dupla: `.log` humano + `.json` estruturado
 - Captura automática de screenshot em exceção, salvo em `logs/errors/<timestamp>_<rotina>.png`
@@ -40,7 +40,7 @@
 
 ### Features
 
-**Abstração de plataforma (`desktop/platform/`)** — PLANNED
+**Abstração de plataforma (`desktop/platform/`)** — DONE ✅
 
 - Interface `PlatformAdapter` com métodos: `launch_app`, `focus_window`, `modifier_key`, `clipboard_copy/paste`
 - Implementação `mac.py` (AppleScript via `subprocess`, tecla `cmd`)
@@ -48,14 +48,13 @@
 - Factory baseada em `sys.platform`
 - Testes unitários com mock para cada adapter
 
-**Ancoragem visual (OpenCV)** — PLANNED
+**Ancoragem visual (OpenCV)** — DONE ✅
 
 - Função `wait_for_template(path, timeout=15s, threshold=0.8)` com polling
 - Tratamento: timeout → screenshot + exceção customizada
-- Decisão arquitetural: pasta única vs `assets/templates/{darwin,win32}/` (validar empiricamente)
-- Documentar processo de captura de templates novos
+- Fallback `assets/templates/{darwin,win32}/` → `assets/templates/` (GA-01)
 
-**Interações primitivas** — PLANNED
+**Interações primitivas** — DONE ✅
 
 - `click_at_template(path)`, `type_text(text)`, `clear_field()`, `extract_via_clipboard()`
 - Zero coordenadas hardcoded — toda posição vem de template matching

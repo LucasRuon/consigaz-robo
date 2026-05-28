@@ -1,0 +1,11 @@
+{
+  "login": {
+    "username":          "input[name='username']",
+    "password":          "input[name='password']",
+    "submit":            "button[type='submit']",
+    "_session_sentinel": "#app-main"
+  },
+  "_placeholder": {
+    "_note": "Adicione páginas reais aqui ao mapear a plataforma Consigaz (M5)"
+  }
+}

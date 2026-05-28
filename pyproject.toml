@@ -19,6 +19,9 @@ dependencies = [
     "openai>=1.12",
     "tenacity>=8.2",
     "invoke>=2.2",
+    "pyperclip>=1.8",
+    "pygetwindow>=0.0.9; sys_platform == \"win32\"",
+    "pywin32>=306; sys_platform == \"win32\"",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +45,8 @@ packages = [
     "src/config",
     "src/logger",
     "src/platform_info",
+    "src/desktop",
+    "src/web",
 ]
 sources = ["src"]
 
@@ -86,6 +91,9 @@ module = [
     "pyautogui.*",
     "cv2.*",
     "invoke.*",
+    "pygetwindow.*",
+    "pyperclip.*",
+    "playwright.*",
 ]
 ignore_missing_imports = true
 

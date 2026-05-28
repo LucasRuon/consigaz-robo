@@ -19,6 +19,10 @@ Single-host. Sem coordenação multi-instância na v1. Agendamento documentado v
 ### 2026-05-28 — Gerenciador de ambiente: `uv`
 Mais rápido que `pip`, lockfile reproduzível, funciona idêntico em macOS e Windows. `venv + pip` fica como fallback documentado se houver resistência.
 
+### 2026-05-28 — Organização de templates de imagem: fallback por SO (GA-01)
+Templates ficam em `assets/templates/` (fallback) com subpastas opcionais `darwin/` e `win32/` para overrides SO-específicos. `wait_for_template()` busca primeiro em `assets/templates/{sys.platform}/`, depois cai em `assets/templates/`. Isso permite começar com pasta única e adicionar overrides apenas quando a UI divergir entre SOs.
+**Implicação:** Ao capturar novos templates, o operador salva em `assets/templates/` por padrão; só move para subpasta de SO se o match falhar na outra plataforma.
+
 ### 2026-05-28 — Validação cross-platform de M0 executada em macOS
 Checklist `CHECKS.md` executado em macOS arm64 (Darwin), Python 3.14.4.
 Todos os itens executáveis da seção macOS validados (9 de 10 como `[x]`, 1 como
@@ -56,7 +60,6 @@ cross-platform" após esse checklist passar em Windows 10/11 x86_64.
 ## TODOs
 
 - Confirmar com o usuário: `uv` ou `venv + pip`?
-- Antes de M1: decidir se templates de imagem ficam em pasta única (`assets/templates/`) ou separados por SO (`assets/templates/darwin/`, `assets/templates/win32/`). Validar empiricamente no primeiro template real.
 - Antes de M2: definir convenção de nomenclatura para `selectors.json` (por página? por feature?).
 
 ---
@@ -72,7 +75,14 @@ cross-platform" após esse checklist passar em Windows 10/11 x86_64.
 
 ## Lessons
 
-(Vazio — será preenchido conforme o projeto evoluir.)
+### 2026-05-28 — Lazy import em adapters de plataforma
+`win.py` faz `import pygetwindow` dentro do método `focus_window()`, não no topo do arquivo. Isso permite que o módulo seja importado em macOS (onde pygetwindow não está instalado) sem lançar ImportError. Padrão aplicado a todas as dependências exclusivas de um SO.
+
+### 2026-05-28 — Mocks de factory com lazy import
+Testes da factory `get_platform_adapter()` usam `patch.dict("sys.modules", {...})` para injetar módulos falsos. `patch("desktop.platform.mac.MacAdapter")` falha se o arquivo não existe ainda — o approach via `sys.modules` é mais robusto e independente da ordem de implementação.
+
+### 2026-05-28 — pyperclip.paste() retorna Any
+`pyperclip` não tem stubs de tipo. `paste()` retorna `Any` — é necessário envolver com `str()` para satisfazer o mypy em modo strict. Adicionado `pyperclip.*` em `ignore_missing_imports` do mypy.
 
 ---
 
