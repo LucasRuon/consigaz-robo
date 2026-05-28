@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from datetime import datetime
 from decimal import Decimal
 from typing import Any

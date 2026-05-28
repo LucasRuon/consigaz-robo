@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class Action(str, Enum):
+class Action(str, Enum):  # noqa: UP042 — mantém compat com `Action.X == "x"` em código existente
     """Decisão final do router para o orquestrador."""
 
     PROCEED_TO_WEB = "proceed_to_web"

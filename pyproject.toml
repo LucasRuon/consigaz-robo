@@ -98,6 +98,8 @@ module = [
     "playwright.*",
     "yaml",
     "yaml.*",
+    "pandas",
+    "pandas.*",
 ]
 ignore_missing_imports = true
 

@@ -7,7 +7,6 @@ import sys
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from intelligence.analysis import compare_against_history, validate_range
 

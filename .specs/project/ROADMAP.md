@@ -91,20 +91,20 @@
 
 ### Features
 
-**Validação estruturada (Pydantic + helpers Pandas)** — PLANNED
+**Validação estruturada (Pydantic + helpers Pandas)** — DONE ✅
 
 - Schema declarativo (campos obrigatórios, formatos, ranges)
 - Retorno: `ValidationResult` com `is_valid`, `errors`, `warnings`
 - Validação roda ANTES de chamar LLM (economia de tokens)
 
-**Cliente OpenAI** — PLANNED
+**Cliente OpenAI** — DONE ✅
 
 - Wrapper com retry exponencial (`tenacity`)
 - Prompts versionados em `config/prompts/` (não no código)
 - Tipagem forte da resposta (Pydantic)
 - Limite de custo por execução (guard rail)
 
-**Roteador de decisão** — PLANNED
+**Roteador de decisão** — DONE ✅
 
 - Função pura `decide(structured_result, llm_result) → Action` (sem side-effects)
 - Testes determinísticos cobrindo aprovado/reprovado/exceção

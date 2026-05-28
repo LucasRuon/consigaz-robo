@@ -38,7 +38,7 @@ from logger.setup import get_logger
 log = get_logger(__name__)
 
 _client: openai.OpenAI | None = None
-_cost_tracker: "CostTracker | None" = None
+_cost_tracker: CostTracker | None = None
 
 
 @dataclass

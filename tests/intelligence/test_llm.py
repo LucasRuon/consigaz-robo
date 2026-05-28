@@ -25,7 +25,6 @@ from intelligence.exceptions import (
 )
 from intelligence.llm import CostTracker, call_llm, reset_for_new_execution
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
 
@@ -106,35 +105,11 @@ def _rate_limit_error() -> openai.RateLimitError:
     return openai.RateLimitError("429", response=response, body=None)
 
 
-def _patch_send(monkeypatch: pytest.MonkeyPatch, side_effect: Any) -> MagicMock:
-    mock = MagicMock(side_effect=side_effect if callable(side_effect) else side_effect)
-    monkeypatch.setattr(llm_module._send_request, "__wrapped__", mock)
-    # tenacity wraps the function; precisamos substituir o callable de fato
-    monkeypatch.setattr(llm_module, "_send_request", _wrap_with_retry(mock))
-    return mock
-
-
-def _wrap_with_retry(fn: MagicMock):
-    """Re-aplica o decorator de retry para que o mock respeite a política."""
-    from tenacity import retry, retry_if_exception, stop_after_attempt, wait_none
-
-    return retry(
-        wait=wait_none(),
-        stop=stop_after_attempt(4),
-        retry=retry_if_exception(llm_module._is_retryable),
-        reraise=True,
-    )(fn)
-
-
 def _patch_client(monkeypatch: pytest.MonkeyPatch, mock_create: MagicMock) -> MagicMock:
     client = MagicMock()
     client.chat.completions.create = mock_create
     monkeypatch.setattr(llm_module, "_client", client)
     return client
-
-
-# Importes adicionais (Any usado em _patch_send)
-from typing import Any  # noqa: E402
 
 
 # ── Tests: client ────────────────────────────────────────────────────────

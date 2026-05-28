@@ -54,7 +54,7 @@ def decide(
         )
 
     confidence = float(getattr(instance, "confidence", 1.0))
-    decision_str = str(getattr(instance, "decision"))
+    decision_str = str(instance.decision)
 
     if confidence < min_confidence:
         return Decision(

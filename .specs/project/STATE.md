@@ -63,6 +63,20 @@ em Windows.
 **How to apply:** quando o ambiente Windows for disponibilizado, rodar o
 mesmo checklist e atualizar a seção Windows do `CHECKS.md`.
 
+### 2026-05-28 — M3 concluído: camada de inteligência funcional
+Implementadas as 10 tasks do `.specs/features/m3-intelligence-layer/`:
+`intelligence/{exceptions,types,validation,analysis,prompts,llm,router,schemas}`.
+30/30 requisitos INT-* cobertos. Gate completo passa: `pytest` (321 testes
+totais, 109 novos de intelligence), `ruff check src/` e `mypy src/intelligence/`
+limpos. Cliente OpenAI mockado (sem chamadas reais em CI). Tabela de preços
+em `settings.llm_model_prices`; hard cap de tokens, warning USD, sanitização
+de logs (nunca prompt/resposta crua) validados por teste. Router puro com
+matriz table-driven.
+**How to apply:** M4 (orquestrador) já pode consumir
+`intelligence.reset_for_new_execution(settings)` no início da rotina,
+`validate → call_llm → decide` em sequência e despachar pela `Action`.
+Prompts reais e schemas concretos chegam em M5 com o domínio Consigaz.
+
 ---
 
 ## Blockers
