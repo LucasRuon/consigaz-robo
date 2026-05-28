@@ -19,6 +19,20 @@ Single-host. Sem coordenação multi-instância na v1. Agendamento documentado v
 ### 2026-05-28 — Gerenciador de ambiente: `uv`
 Mais rápido que `pip`, lockfile reproduzível, funciona idêntico em macOS e Windows. `venv + pip` fica como fallback documentado se houver resistência.
 
+### 2026-05-28 — Validação cross-platform de M0 executada em macOS
+Checklist `CHECKS.md` executado em macOS arm64 (Darwin), Python 3.14.4.
+Todos os itens executáveis da seção macOS validados (9 de 10 como `[x]`, 1 como
+`[~]` por exigir permissão Gravação de Tela — coberto por teste automatizado
+com FakeScreenshot). `uv sync`, `inv test` (72/72), `inv lint`, `inv typecheck`,
+`python -m orchestrator --help` e `inv smoke` retornam exit 0. Logs `.log` +
+`.json` gerados com timestamp + routine no nome; sanitizador mascara
+`password=***`; encoding UTF-8 sem mojibake.
+Seção Windows fica **pendente** — usuário não tem máquina Windows acessível
+no momento. M0 só pode ser fechado como "done cross-platform" após validação
+em Windows.
+**How to apply:** quando o ambiente Windows for disponibilizado, rodar o
+mesmo checklist e atualizar a seção Windows do `CHECKS.md`.
+
 ---
 
 ## Blockers
@@ -31,6 +45,11 @@ Precisamos da URL base, fluxo de login (form/SSO), e mapa dos formulários alvo.
 
 ### Bloqueador de M5 — Definição da rotina-piloto
 Qual processo manual exato será automatizado primeiro? Sem isso, não dá pra escrever spec, capturar templates ou mapear seletores.
+
+### Pendente para fechar M0 — Validação no Windows
+Sem máquina Windows hoje. `CHECKS.md` tem seção Windows aguardando execução.
+M0 está funcionalmente completo (16/16 tasks) mas só vira "verified
+cross-platform" após esse checklist passar em Windows 10/11 x86_64.
 
 ---
 
