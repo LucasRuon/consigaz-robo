@@ -1,0 +1,62 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+build/
+dist/
+wheels/
+.eggs/
+
+# --- Ambientes virtuais ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Caches de ferramentas ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# --- Logs e screenshots de erro do robô ---
+logs/
+!logs/.gitkeep
+!logs/errors/.gitkeep
+*.log
+
+# --- Segredos ---
+.env
+.env.local
+.env.*.local
+
+# --- IDEs ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# --- Windows ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# --- Playwright ---
+.playwright-profile/
+node_modules/

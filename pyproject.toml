@@ -1,0 +1,101 @@
+[project]
+name = "consigaz-robo"
+version = "0.1.0"
+description = "Robô RPA híbrido (Desktop + Web) cross-platform para macOS e Windows, com camada de inteligência via LLM"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+license = { text = "Proprietary" }
+authors = [{ name = "Consigaz" }]
+
+dependencies = [
+    "pydantic>=2.5",
+    "pydantic-settings>=2.1",
+    "keyring>=24",
+    "structlog>=24",
+    "pyautogui>=0.9.54",
+    "opencv-python>=4.9",
+    "playwright>=1.40",
+    "pandas>=2.2",
+    "openai>=1.12",
+    "tenacity>=8.2",
+    "invoke>=2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=4",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+consigaz-robo = "orchestrator.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/orchestrator",
+    "src/config",
+    "src/logger",
+]
+sources = ["src"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/platform_info.py" = "platform_info.py"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501", # line too long (deferred to formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"] # allow assert False in tests
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "pyautogui.*",
+    "cv2.*",
+    "invoke.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
