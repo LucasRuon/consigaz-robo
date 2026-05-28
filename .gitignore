@@ -26,8 +26,11 @@ htmlcov/
 .tox/
 
 # --- Logs e screenshots de erro do robô ---
-logs/
+# Ignora conteúdo mas mantém estrutura de pastas via .gitkeep
+logs/*
 !logs/.gitkeep
+!logs/errors/
+logs/errors/*
 !logs/errors/.gitkeep
 *.log
 
