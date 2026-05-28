@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 from config.keyring_source import KeyringSettingsSource
@@ -56,6 +56,20 @@ class Settings(BaseSettings):
     web_viewport_width: int = 1280
     web_viewport_height: int = 800
     web_locale: str = "pt-BR"
+
+    llm_default_model: str = "gpt-4o-mini"
+    llm_default_temperature: float = 0.0
+    llm_min_confidence: float = 0.7
+    llm_token_hard_cap: int = 100_000
+    llm_cost_warning_usd: float = 1.00
+    llm_prompts_dir: Path = Path("config/prompts")
+    llm_model_prices: dict[str, tuple[float, float]] = Field(
+        default_factory=lambda: {
+            "gpt-4o-mini": (0.00015, 0.0006),
+            "gpt-4o": (0.0025, 0.01),
+            "gpt-4-turbo": (0.01, 0.03),
+        }
+    )
 
     sensitive_keys: frozenset[str] = DEFAULT_SENSITIVE_KEYS
 

@@ -18,6 +18,7 @@ dependencies = [
     "pandas>=2.2",
     "openai>=1.12",
     "tenacity>=8.2",
+    "pyyaml>=6.0",
     "invoke>=2.2",
     "pyperclip>=1.8",
     "pygetwindow>=0.0.9; sys_platform == \"win32\"",
@@ -47,6 +48,7 @@ packages = [
     "src/platform_info",
     "src/desktop",
     "src/web",
+    "src/intelligence",
 ]
 sources = ["src"]
 
@@ -94,6 +96,8 @@ module = [
     "pygetwindow.*",
     "pyperclip.*",
     "playwright.*",
+    "yaml",
+    "yaml.*",
 ]
 ignore_missing_imports = true
 

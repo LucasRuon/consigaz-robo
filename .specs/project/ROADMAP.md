@@ -68,13 +68,13 @@
 
 ### Features
 
-**Sessão persistente** — PLANNED
+**Sessão persistente** — IN PROGRESS 🚧
 
 - Diretório de profile persistente cross-platform (`~/.consigaz-robo/playwright-profile/`)
 - Fluxo de primeiro login manual documentado; depois reusa cookies
 - Cabeçalhos humanos estáveis (mitigação CAPTCHA)
 
-**Navegação e preenchimento** — PLANNED
+**Navegação e preenchimento** — IN PROGRESS 🚧
 
 - Seletores em `config/selectors.json` (zero seletor hardcoded em código)
 - Helper `fill_form(data, mapping)` que mapeia chaves → seletores
@@ -87,9 +87,11 @@
 
 **Goal:** Validação determinística + análise de texto livre via OpenAI, com decisão condicional (aprovado → web, reprovado → exceção).
 
+**Plan:** `.specs/features/m3-intelligence-layer/` (spec.md + design.md + tasks.md — 30 requisitos INT-*, 10 tasks)
+
 ### Features
 
-**Validação estruturada (Pandas)** — PLANNED
+**Validação estruturada (Pydantic + helpers Pandas)** — PLANNED
 
 - Schema declarativo (campos obrigatórios, formatos, ranges)
 - Retorno: `ValidationResult` com `is_valid`, `errors`, `warnings`
