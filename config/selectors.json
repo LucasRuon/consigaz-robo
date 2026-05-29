@@ -5,6 +5,14 @@
     "submit":            "button[type='submit']",
     "_session_sentinel": "#app-main"
   },
+  "pilot_smoke": {
+    "_session_sentinel": "input[name='custname']",
+    "custname":          "input[name='custname']",
+    "custtel":           "input[name='custtel']",
+    "custemail":         "input[name='custemail']",
+    "comments":          "textarea[name='comments']",
+    "submit":            "form button"
+  },
   "_placeholder": {
     "_note": "Adicione páginas reais aqui ao mapear a plataforma Consigaz (M5)"
   }
