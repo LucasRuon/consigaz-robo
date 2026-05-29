@@ -141,7 +141,8 @@ def _submit_to_httpbin(
     assert isinstance(llm_model, PilotSmokeLLM)
 
     selectors = load_selectors()
-    page = open_browser(ctx.settings, selectors=selectors)
+    selectors_no_login = {k: v for k, v in selectors.items() if k != "login"}
+    page = open_browser(ctx.settings, selectors=selectors_no_login)
     try:
         navigate_to(page, _HTTPBIN_FORM_URL)
         form_data: dict[str, str | None] = {

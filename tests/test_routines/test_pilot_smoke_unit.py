@@ -160,3 +160,64 @@ def test_validation_failure_short_circuits(monkeypatch: pytest.MonkeyPatch) -> N
 def test_registered_with_correct_name() -> None:
     registry_module.discover("routines")
     assert registry_module.get("pilot-smoke") is ps.run
+
+
+def test_submit_strips_login_selectors_before_open_browser(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`open_browser` não pode receber o bloco `login`, senão o session-check
+    procura `#app-main` em `about:blank` e dispara LoginRequiredError indevido."""
+    from intelligence import validate
+    from intelligence.schemas.pilot_smoke import PilotSmokeData
+
+    captured: dict[str, Any] = {}
+
+    def fake_load_selectors() -> dict[str, dict[str, str]]:
+        return {
+            "login": {"_session_sentinel": "#app-main", "submit": "x"},
+            "pilot_smoke": {
+                "_session_sentinel": "input[name='custname']",
+                "custname": "input[name='custname']",
+                "custtel": "input[name='custtel']",
+                "custemail": "input[name='custemail']",
+                "comments": "textarea[name='comments']",
+                "submit": "form button",
+            },
+        }
+
+    class FakePage:
+        url = "https://httpbin.org/post"
+
+        def locator(self, _: str) -> Any:
+            class _Loc:
+                first = type("_F", (), {"click": lambda self: None})()
+
+            return _Loc()
+
+        def expect_navigation(self, **_: Any) -> Any:
+            class _Ctx:
+                def __enter__(self_inner) -> None: return None
+                def __exit__(self_inner, *a: Any) -> None: return None
+
+            return _Ctx()
+
+    def fake_open_browser(settings: Any, selectors: Any) -> FakePage:
+        captured["selectors"] = selectors
+        return FakePage()
+
+    monkeypatch.setattr(ps, "load_selectors", fake_load_selectors)
+    monkeypatch.setattr(ps, "open_browser", fake_open_browser)
+    monkeypatch.setattr(ps, "navigate_to", lambda *_a, **_k: None)
+    monkeypatch.setattr(ps, "fill_form", lambda *_a, **_k: None)
+    monkeypatch.setattr(ps, "close_browser", lambda: None)
+
+    validation = validate(
+        {"operation": "2 + 3", "result": 5, "observation": "x"},
+        PilotSmokeData,
+    )
+    llm = _make_llm("approve", 0.95)
+
+    ps._submit_to_httpbin(_make_ctx(), validation, llm)
+
+    assert "login" not in captured["selectors"]
+    assert "pilot_smoke" in captured["selectors"]
