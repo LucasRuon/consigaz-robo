@@ -155,8 +155,16 @@ Todos os comandos abaixo rodam dentro do ambiente isolado pelo `uv`. Use `uv run
 | `uv run inv smoke` | Smoke e2e: executa `python -m orchestrator --help` |
 | `uv run inv clean` | Remove caches (`.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `__pycache__`) |
 | `uv run python -m orchestrator --help` | Mostra ajuda da CLI |
-| `uv run python -m orchestrator --routine NOME` | Executa uma rotina específica (despacho real chega em M4) |
-| `uv run python -m orchestrator --dry-run` | Executa o boot sem efeitos colaterais |
+| `uv run python -m orchestrator --list` | Lista as rotinas registradas |
+| `uv run python -m orchestrator --routine NOME` | Executa uma rotina específica |
+| `uv run python -m orchestrator --routine NOME --dry-run` | Executa a rotina pulando o submit web |
+
+### Agendamento em produção
+
+Para rodar o robô via cron / LaunchAgent (macOS) ou Task Scheduler (Windows),
+consulte [`docs/scheduling.md`](docs/scheduling.md) — inclui receitas prontas,
+tabela de exit codes e snippets `jq` para inspecionar o evento
+`execution_summary` no log estruturado.
 
 ## Estrutura do projeto
 

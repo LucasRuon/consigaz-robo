@@ -63,6 +63,67 @@ em Windows.
 **How to apply:** quando o ambiente Windows for disponibilizado, rodar o
 mesmo checklist e atualizar a seção Windows do `CHECKS.md`.
 
+### 2026-05-28 — M4: boundary com M3 via `get_cost_snapshot()` público
+A camada `intelligence` ganhou `CostSnapshot` (frozen) + `get_cost_snapshot()`
+público. M4 lê o snapshot no `summary.emit` sem tocar no `_cost_tracker`
+interno. Quando nenhum reset foi chamado ainda (caminho de erro precoce),
+retorna zeros — **nunca lança** — para que o sumário sempre saia.
+`CostTracker` ganhou `tokens_in` e `tokens_out` separados (além do
+`tokens_used` agregado) para satisfazer ORC-4.2 sem inferência no orquestrador.
+**How to apply:** rotinas (M5+) que precisarem de telemetria de custo durante a
+execução podem chamar `from intelligence import get_cost_snapshot` em vez de
+importar internals.
+
+### 2026-05-28 — M4: semântica de `--dry-run` é contrato, não fiscalização
+`--dry-run` propaga `ctx.dry_run=True`. **A rotina é responsável por respeitar
+o flag** (executar desktop+validação+LLM mas pular o submit web). O
+orquestrador não inspeciona ações de rede nem bloqueia chamadas web — isso
+acoplaria M4 a internals dos módulos `desktop`/`web`. Cada rotina (M5+) testa
+o seu próprio caminho dry-run.
+**How to apply:** ao escrever rotinas em M5, fazer `if ctx.dry_run: return
+RoutineResult(action=Action.PROCEED_TO_WEB, evidence={"dry_run": True})`
+ANTES do `web.submit_form(...)`.
+
+### 2026-05-28 — M4: formato do summary = linha JSON única no logger M0
+Uma única entrada `execution_summary` por run, emitida via
+`ctx.logger.info("execution_summary", ...)` — nada de arquivo separado, nada
+de tabela formatada. Campos obrigatórios: `routine`, `action`, `duration_s`
+(3 casas), `tokens_in`, `tokens_out`, `cost_usd` (4 casas), `exit_code`,
+`dry_run`, `started_at`, `finished_at`, `evidence_keys`. Em exceção:
+`error_type` + `error_msg` adicionados; `action="error"`. Em falha de boot
+(antes do logger inicializar): fallback escreve JSON puro em stderr via
+`emit_boot_failure`. **Summary NUNCA contém valores de `evidence`** — apenas
+as chaves ordenadas, para evitar PII e segredos no log.
+**How to apply:** operadores fazem `grep '"event":"execution_summary"'
+logs/*.json | jq` — receitas em `docs/scheduling.md`. Dashboards futuros
+consomem o mesmo evento.
+
+### 2026-05-28 — M4: `__init__.py` preserva submódulos no namespace
+`orchestrator.__init__` faz `from orchestrator import boot, dispatch` para
+preservar `orchestrator.boot` e `orchestrator.dispatch` como módulos (não
+funções). As funções ficam acessíveis como `orchestrator.boot.boot` e
+`orchestrator.dispatch.dispatch`. Razão: testes legacy (M0–M3) usam
+`monkeypatch.setattr("orchestrator.boot.current_platform", ...)` e `pytest`
+resolve via getattr-chain — se o nome `boot` fosse a função, o monkeypatch
+quebrava. Trade-off aceito: `from orchestrator import boot` retorna o módulo;
+quem quiser a função usa `from orchestrator.boot import boot`.
+**How to apply:** ao adicionar submódulos no orchestrator que também
+exportam função homônima (`registry`, etc), seguir o mesmo padrão.
+
+### 2026-05-28 — M4 concluído: chassis de produção do orquestrador
+Implementadas as 11 tasks de código do `.specs/features/m4-orchestrator-scheduling/`
+(T01–T11). 23 requisitos ORC-* cobertos. Gate completo passa: `pytest` (377
+testes totais, 56 novos), `ruff check src/` e `mypy src/orchestrator/`
+limpos. Entregue: registry com decorator + auto-discovery de `src/routines/`,
+`RoutineContext` frozen com logger bound, `dispatch` com mapping de Action
+para exit codes, CLI estendida (`--list`, exit codes 0/1/2/3/4/5/130),
+`emit_boot_failure` em stderr e `docs/scheduling.md` com receitas cron +
+LaunchAgent + schtasks.
+**How to apply:** M5 pode criar a primeira rotina real em
+`src/routines/<nome>.py` com `@register("nome")` e função
+`def run(ctx: RoutineContext) -> RoutineResult`. Auto-discovery a carrega
+sem editar a CLI.
+
 ### 2026-05-28 — M3 concluído: camada de inteligência funcional
 Implementadas as 10 tasks do `.specs/features/m3-intelligence-layer/`:
 `intelligence/{exceptions,types,validation,analysis,prompts,llm,router,schemas}`.

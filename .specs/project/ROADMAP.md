@@ -1,7 +1,7 @@
 # Roadmap
 
-**Current Milestone:** M2 — Camada Web (Playwright)
-**Status:** M1 concluído ✅ — pronto para M2
+**Current Milestone:** M5 — Primeira Rotina End-to-End
+**Status:** M0–M4 concluídos ✅ — pronto para M5 (depende de definição de domínio)
 
 ---
 
@@ -68,13 +68,13 @@
 
 ### Features
 
-**Sessão persistente** — IN PROGRESS 🚧
+**Sessão persistente** — DONE ✅
 
 - Diretório de profile persistente cross-platform (`~/.consigaz-robo/playwright-profile/`)
 - Fluxo de primeiro login manual documentado; depois reusa cookies
 - Cabeçalhos humanos estáveis (mitigação CAPTCHA)
 
-**Navegação e preenchimento** — IN PROGRESS 🚧
+**Navegação e preenchimento** — DONE ✅
 
 - Seletores em `config/selectors.json` (zero seletor hardcoded em código)
 - Helper `fill_form(data, mapping)` que mapeia chaves → seletores
@@ -115,19 +115,26 @@
 
 **Goal:** Ponto de entrada que carrega config, despacha rotinas, agrega logs e é agendável em cron (macOS) e Task Scheduler (Windows).
 
+**Plan:** `.specs/features/m4-orchestrator-scheduling/` (spec.md + design.md + tasks.md — 23 requisitos ORC-*, 11 tasks de código + 1 de housekeeping)
+
 ### Features
 
-**CLI do orquestrador** — PLANNED
+**CLI do orquestrador** — DONE ✅
 
-- `python -m orchestrator [--routine NAME] [--dry-run]`
-- Carrega config, valida ambiente, executa rotina, agrega log final
-- Exit codes claros para o agendador interpretar
+- `python -m orchestrator [--list] [--routine NAME [--dry-run]]`
+- Registry de rotinas (`@register`) com auto-discovery em `src/routines/`
+- `RoutineContext` frozen (DI) + `RoutineResult(action, evidence, exit_code_hint)`
+- Exit codes mapeados (0/1/2/3/4/5/130) por classe de exceção
+- `execution_summary` (linha JSON estruturada) por execução — tokens, custo, duração
+- Fallback `emit_boot_failure` em stderr quando o logger ainda não existe
 
-**Documentação de agendamento** — PLANNED
+**Documentação de agendamento** — DONE ✅
 
-- Receita cron + LaunchAgent (macOS)
-- Receita Task Scheduler (Windows)
-- Recomendação de logging de runs agendados
+- `docs/scheduling.md` — crontab + LaunchAgent (.plist) no macOS
+- `schtasks` + XML para Task Scheduler no Windows
+- Tabela de exit codes com tratamento sugerido por código
+- Snippets `jq` para filtrar/sumarizar o evento `execution_summary` nos `.json`
+- README principal aponta para `docs/scheduling.md`
 
 ---
 
@@ -139,7 +146,7 @@
 
 ### Features
 
-**Rotina-piloto** — PLANNED (escopo a definir)
+**Rotina-piloto** — IN PROGRESS 🚧 (chassis pronto, escopo de domínio a definir)
 
 - Spec da rotina (gray areas serão discutidas)
 - Templates de imagem capturados

@@ -64,15 +64,28 @@ def test_sem_args_imprime_help_e_retorna_zero(capsys: pytest.CaptureFixture[str]
     assert "usage:" in out.lower()
 
 
-def test_routine_executa_boot_e_retorna_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_routine_executa_boot_e_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """M4: --routine X registra+dispatcha; aqui registramos um stub."""
+    from intelligence.types import Action
+    from orchestrator import registry
+    from orchestrator.context import RoutineContext
+    from orchestrator.types import RoutineResult
+
     chamadas: list[str] = []
+    registry._clear()
+
+    @registry.register("extracao_diaria")
+    def run(ctx: RoutineContext) -> RoutineResult:
+        chamadas.append(ctx.routine_name)
+        return RoutineResult(action=Action.PROCEED_TO_WEB)
 
     def fake_boot(routine: str = "default", **kwargs: object) -> BootContext:
-        chamadas.append(routine)
         return _fake_boot_ok(routine)
 
     monkeypatch.setattr("orchestrator.cli.boot", fake_boot)
+    monkeypatch.setattr("orchestrator.cli.registry.discover", lambda pkg="routines": None)
     exit_code = cli.main(["--routine", "extracao_diaria"])
+    registry._clear()
     assert exit_code == 0
     assert chamadas == ["extracao_diaria"]
 
@@ -112,7 +125,20 @@ def test_excecao_generica_retorna_exit_1(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 def test_dry_run_flag_aceita(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A flag --dry-run não deve dar erro de parsing (é placeholder até M4)."""
+    """A flag --dry-run propaga ctx.dry_run e não quebra o parsing."""
+    from intelligence.types import Action
+    from orchestrator import registry
+    from orchestrator.context import RoutineContext
+    from orchestrator.types import RoutineResult
+
+    registry._clear()
+
+    @registry.register("x")
+    def run(ctx: RoutineContext) -> RoutineResult:
+        return RoutineResult(action=Action.PROCEED_TO_WEB)
+
     monkeypatch.setattr("orchestrator.cli.boot", _fake_boot_ok)
+    monkeypatch.setattr("orchestrator.cli.registry.discover", lambda pkg="routines": None)
     exit_code = cli.main(["--routine", "x", "--dry-run"])
+    registry._clear()
     assert exit_code == 0

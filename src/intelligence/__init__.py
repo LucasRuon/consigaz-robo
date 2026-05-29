@@ -37,7 +37,7 @@ from intelligence.exceptions import (
     TokenBudgetExceededError,
     ValidationCodeError,
 )
-from intelligence.llm import call_llm, reset_for_new_execution
+from intelligence.llm import CostSnapshot, call_llm, get_cost_snapshot, reset_for_new_execution
 from intelligence.prompts import Prompt
 from intelligence.prompts import load as load_prompt
 from intelligence.prompts import render as render_prompt
@@ -49,6 +49,7 @@ from intelligence.validation import validate
 
 __all__ = [
     "Action",
+    "CostSnapshot",
     "Decision",
     "IntelligenceError",
     "LLMConfigError",
@@ -70,6 +71,7 @@ __all__ = [
     "ValidationResult",
     "call_llm",
     "decide",
+    "get_cost_snapshot",
     "get_schema",
     "list_schemas",
     "load_prompt",

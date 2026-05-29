@@ -41,6 +41,37 @@ _client: openai.OpenAI | None = None
 _cost_tracker: CostTracker | None = None
 
 
+@dataclass(frozen=True)
+class CostSnapshot:
+    """Snapshot imutável do `CostTracker` atual (consumo de uma execução).
+
+    Retornado por `get_cost_snapshot()`. Se nenhum tracker foi inicializado
+    (sem `reset_for_new_execution`), todos os campos são zero.
+    """
+
+    tokens_in: int
+    tokens_out: int
+    cost_usd: float
+
+
+def get_cost_snapshot() -> CostSnapshot:
+    """Retorna snapshot do tracker atual. Nunca lança; zeros quando ausente.
+
+    Nota: o `CostTracker` só rastreia `tokens_used` (soma in+out). O snapshot
+    expõe a soma em `tokens_in` por compat com o sumário M4; `tokens_out` é 0
+    para preservar a granularidade somente quando explicitamente disponível.
+    Tradeoff aceito: M4 reporta `tokens_in`+`tokens_out` agregados — operadores
+    interpretam o total via `tokens_in + tokens_out`.
+    """
+    if _cost_tracker is None:
+        return CostSnapshot(tokens_in=0, tokens_out=0, cost_usd=0.0)
+    return CostSnapshot(
+        tokens_in=_cost_tracker.tokens_in,
+        tokens_out=_cost_tracker.tokens_out,
+        cost_usd=_cost_tracker.cost_usd,
+    )
+
+
 @dataclass
 class CostTracker:
     """Rastreia tokens e USD acumulados de uma execução (rotina)."""
@@ -49,6 +80,8 @@ class CostTracker:
     cost_warning_usd: float
     model_prices: dict[str, tuple[float, float]]
     tokens_used: int = 0
+    tokens_in: int = 0
+    tokens_out: int = 0
     cost_usd: float = 0.0
     warning_emitted: bool = field(default=False)
 
@@ -64,6 +97,8 @@ class CostTracker:
         self, model: str, prompt_tokens: int, completion_tokens: int
     ) -> float:
         self.tokens_used += prompt_tokens + completion_tokens
+        self.tokens_in += prompt_tokens
+        self.tokens_out += completion_tokens
         price_in, price_out = self.model_prices.get(model, (0.0, 0.0))
         cost = (prompt_tokens * price_in + completion_tokens * price_out) / 1000
         self.cost_usd += cost

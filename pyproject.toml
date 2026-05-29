@@ -43,6 +43,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/orchestrator",
+    "src/routines",
     "src/config",
     "src/logger",
     "src/platform_info",
