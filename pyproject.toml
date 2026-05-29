@@ -112,3 +112,6 @@ addopts = [
     "--strict-markers",
     "--strict-config",
 ]
+markers = [
+    "e2e: testes end-to-end gateados por env var (rodam só em máquina local com credenciais reais)",
+]
