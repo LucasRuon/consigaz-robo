@@ -1,7 +1,7 @@
 # Roadmap
 
-**Current Milestone:** M5 — Primeira Rotina End-to-End
-**Status:** M0–M4 concluídos ✅ — pronto para M5 (depende de definição de domínio)
+**Current Milestone:** M6 — Rotina TOTVS de Produção
+**Status:** M0–M5 concluídos ✅ (macOS) — pronto para M6 (depende de mapeamento TOTVS)
 
 ---
 
@@ -140,19 +140,44 @@
 
 ## M5 — Primeira Rotina End-to-End
 
-**Goal:** Uma rotina real (a ser definida em sessão de spec) executando o happy path completo: desktop → extração → validação → LLM → web → sucesso.
+**Status:** M0-M5 concluídos ✅ (macOS) — pronto para M6
 
-**Bloqueador:** Precisa do app desktop alvo identificado, URL/fluxo da plataforma web Consigaz definidos, e rotina específica escolhida.
+**Goal:** Provar que o chassis cabeado em M0-M4 funciona em execução real, usando alvos neutros (Calculadora + httpbin) para deixar a rotina TOTVS para M6 quando o domínio for mapeado.
+
+**Plan:** `.specs/features/m5-pilot-smoke/` (spec.md + design.md + tasks.md — 9 tasks, AC-1 a AC-7)
 
 ### Features
 
-**Rotina-piloto** — IN PROGRESS 🚧 (chassis pronto, escopo de domínio a definir)
+**Rotina-piloto** — DONE ✅
 
-- Spec da rotina (gray areas serão discutidas)
-- Templates de imagem capturados
-- Seletores web mapeados
-- Prompt da LLM versionado
-- Teste end-to-end em ambos SOs
+Implementada como rotina-esqueleto `pilot-smoke`; rotina TOTVS de produção fica em M6.
+
+- `src/routines/pilot_smoke.py` com `@register("pilot-smoke")` e pipeline canônico de 21 passos
+- Schemas `PilotSmokeData` + `PilotSmokeLLM` em `intelligence/schemas/pilot_smoke.py`
+- Prompt `config/prompts/pilot-smoke.md` versionado (v1) com `response_schema`
+- Bloco `pilot_smoke` em `config/selectors.json` (formulário httpbin)
+- Templates Calculadora em `assets/templates/pilot-smoke/darwin/` (placeholders — substituir antes do E2E real)
+- 6 testes unitários (mocks) + 3 testes E2E gateados por `RUN_E2E_PILOT_SMOKE=1`
+- Checklist Windows em `CHECKS.md` (pendente máquina)
+
+---
+
+## M6 — Rotina TOTVS de Produção
+
+**Goal:** Implementar a primeira rotina real de domínio Consigaz, automatizando um processo manual concreto entre TOTVS (desktop) e a plataforma web Consigaz, reusando exatamente o padrão E2E provado em M5.
+
+**Bloqueador:** Mapeamento TOTVS pendente — versão do produto, telas alvo, campos a extrair, processo manual passo-a-passo, e mapeamento da plataforma web Consigaz (URL base, login, formulários).
+
+### Features (placeholder — refinar após mapeamento)
+
+**Rotina TOTVS** — TODO
+
+- Spec do processo TOTVS escolhido (sessão de discuss com operador)
+- Schemas `<rotina>Data` + `<rotina>LLM` herdando contrato canônico de M5
+- Prompt LLM com placeholders de domínio
+- Templates TOTVS capturados em `assets/templates/<rotina>/`
+- Seletores Consigaz mapeados em `config/selectors.json`
+- Testes unit + E2E gateado por env var
 
 ---
 

@@ -124,6 +124,34 @@ LaunchAgent + schtasks.
 `def run(ctx: RoutineContext) -> RoutineResult`. Auto-discovery a carrega
 sem editar a CLI.
 
+### 2026-05-29 — M5 concluído: chassis E2E provado via pilot-smoke
+Implementadas as 9 tasks de `.specs/features/m5-pilot-smoke/` (T01–T09). A
+rotina `pilot-smoke` exercita as 4 camadas (desktop Calculadora → validação
+Pydantic → LLM OpenAI → web httpbin) ponta a ponta em macOS. Gate completo
+passa: `pytest` (394 testes totais, 17 novos; 3 E2E skipped por gating de env
+var), `ruff` e `mypy` limpos nos arquivos novos. Templates Calculadora
+capturados em `assets/templates/pilot-smoke/darwin/` (PLACEHOLDERS 1×1 cinza
+no commit inicial — substituir por capturas reais antes do E2E). Windows fica
+como checklist manual em `CHECKS.md` (sem máquina disponível).
+**Why:** prova que os contratos M0-M4 funcionam em execução real, antes de
+investir em domínio TOTVS.
+**How to apply:** M6 (TOTVS) reusa exatamente este padrão — `<rotina>Data` +
+`<rotina>LLM` schemas, prompt `.md` em `config/prompts/`, bloco em
+`selectors.json`, templates em `assets/templates/<rotina>/`, e arquivo único
+`src/routines/<rotina>.py` (ou package se crescer).
+
+### 2026-05-29 — M5: contrato canônico de `evidence`
+Chaves padrão herdadas por M6+: `operation`, `result`, `llm_decision`,
+`llm_confidence`, `llm_summary`, `web_final_url`, `web_status`, `dry_run`.
+Em `--dry-run`, `web_*` ficam ausentes. Summary M4 expõe apenas
+`evidence_keys` ordenadas — nunca valores.
+**Why:** operadores fazem `grep '"event":"execution_summary"' logs/*.json |
+jq` e obtêm o mesmo shape em todas as rotinas. Mudar o shape exige decisão
+arquitetural (não pode ser feito ad-hoc por rotina).
+**How to apply:** ao escrever a rotina TOTVS, mapear chaves de domínio
+(`cliente_id`, `pedido_numero`, etc.) substituindo `operation`/`result`, mas
+manter o prefixo `llm_*`/`web_*` para análise transversal.
+
 ### 2026-05-28 — M3 concluído: camada de inteligência funcional
 Implementadas as 10 tasks do `.specs/features/m3-intelligence-layer/`:
 `intelligence/{exceptions,types,validation,analysis,prompts,llm,router,schemas}`.
@@ -142,14 +170,15 @@ Prompts reais e schemas concretos chegam em M5 com o domínio Consigaz.
 
 ## Blockers
 
-### Bloqueador de M5 — Identificação do app desktop alvo
-Precisamos do nome/bundle ID do app no macOS (`open -a "Nome do App"`) e do caminho do executável no Windows. Sem isso, não dá pra implementar a primeira rotina end-to-end.
-
-### Bloqueador de M5 — Plataforma web interna da Consigaz
-Precisamos da URL base, fluxo de login (form/SSO), e mapa dos formulários alvo. Sem isso, módulo Web fica genérico demais.
-
-### Bloqueador de M5 — Definição da rotina-piloto
-Qual processo manual exato será automatizado primeiro? Sem isso, não dá pra escrever spec, capturar templates ou mapear seletores.
+### Bloqueador de M6 — Mapeamento TOTVS pendente
+Para escrever a rotina TOTVS de produção precisamos de: (1) versão/edição do
+produto TOTVS instalada, (2) telas alvo (capturas + nomes de janelas), (3)
+campos exatos a extrair, (4) processo manual completo a automatizar
+(passo-a-passo do operador), (5) plataforma web Consigaz onde os dados são
+injetados (URL base, fluxo de login, formulários). Sem esse mapeamento, M6
+fica em backlog. Os bloqueadores de M5 (app desktop, plataforma web,
+rotina-piloto) foram **desbloqueados** ao escolher Calculadora + httpbin como
+alvos neutros — M6 retoma o problema real.
 
 ### Pendente para fechar M0 — Validação no Windows
 Sem máquina Windows hoje. `CHECKS.md` tem seção Windows aguardando execução.
@@ -183,6 +212,19 @@ Testes da factory `get_platform_adapter()` usam `patch.dict("sys.modules", {...}
 
 ### 2026-05-28 — pyperclip.paste() retorna Any
 `pyperclip` não tem stubs de tipo. `paste()` retorna `Any` — é necessário envolver com `str()` para satisfazer o mypy em modo strict. Adicionado `pyperclip.*` em `ignore_missing_imports` do mypy.
+
+### 2026-05-29 — Fixtures que limpam registries criam acoplamento entre testes
+`tests/intelligence/conftest.py::clear_schema_registry` e
+`tests/test_orchestrator/conftest.py::clean_registry` zeram os registries
+globais (schemas / rotinas). Quando testes rodam na suite inteira, isso
+quebra testes posteriores que dependem da chamada `@register` que rodou no
+import inicial — Python só importa o módulo uma vez, então o decorator não
+dispara de novo. Solução adotada em M5: `conftest.py` autouse em
+`tests/test_intelligence/` e `tests/test_routines/` re-registra schemas e
+rotina pilot-smoke (idempotente para schemas; write direto no `_REGISTRY`
+para rotina porque o decorator do orchestrator rejeita re-registro).
+**How to apply:** ao adicionar nova rotina M6+, criar autouse fixture
+análogo no conftest do diretório de teste correspondente.
 
 ---
 
