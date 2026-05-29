@@ -115,8 +115,10 @@ def _patch_client(monkeypatch: pytest.MonkeyPatch, mock_create: MagicMock) -> Ma
 # ── Tests: client ────────────────────────────────────────────────────────
 
 
-def test_get_client_raises_without_api_key() -> None:
-    s = Settings()  # openai_api_key=None
+def test_get_client_raises_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    s = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert s.openai_api_key is None
     with pytest.raises(LLMConfigError):
         llm_module._get_client(s)
 
