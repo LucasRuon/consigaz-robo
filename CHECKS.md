@@ -104,3 +104,37 @@ log.info('teste', mensagem='operação_concluída', password='nao-deve-aparecer'
 ```
 
 Esperado: `password=***` (não o valor literal) nos dois arquivos.
+
+---
+
+## M5 — pilot-smoke (Windows)
+
+Checklist para validar a rotina `pilot-smoke` em Windows quando uma máquina
+estiver disponível. Pendente pelo mesmo motivo herdado de M0 (sem máquina
+Windows na bancada de desenvolvimento atual).
+
+Pré-requisitos:
+
+- Windows 10/11 x86_64 com Python 3.11+ e `uv` instalados.
+- Calculadora nativa do Windows (já vem instalada — `calc.exe`).
+- `OPENAI_API_KEY` válida exportada no PowerShell.
+
+Passos:
+
+- [ ] Capturar templates `assets/templates/pilot-smoke/win32/{window_titlebar,btn_2,btn_3,btn_plus,btn_equals}.png`
+      em alta resolução, tema claro, zoom 100%. Substituir os placeholders do
+      git e committar.
+- [ ] `setx OPENAI_API_KEY "sk-..."` (ou exportar no ambiente da sessão).
+- [ ] `$env:RUN_E2E_PILOT_SMOKE = "1"` no PowerShell.
+- [ ] `uv run python -m orchestrator --list` exibe `pilot-smoke`.
+- [ ] `uv run python -m orchestrator --routine pilot-smoke` retorna exit 0.
+- [ ] Log `.json` mais recente em `logs/` contém um evento
+      `"event":"execution_summary"` com `"action":"proceed_to_web"` e
+      `"tokens_in" > 0`.
+- [ ] `uv run python -m orchestrator --routine pilot-smoke --dry-run` retorna
+      exit 0 e o `evidence_keys` do summary contém `"dry_run"` mas **não**
+      contém `"web_final_url"`.
+- [ ] `uv run pytest -m e2e tests/test_routines/test_pilot_smoke_e2e.py` com
+      `RUN_E2E_PILOT_SMOKE=1` mostra os 3 testes como `passed` (não `skipped`).
+
+**Última validação:** pendente — Windows ainda não disponível na bancada.
